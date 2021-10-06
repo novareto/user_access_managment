@@ -1,0 +1,226 @@
+openapi: 3.0.3
+info:
+  title: Virtual User Storage API
+  description: Virtual User Storage API for usage from within a Keycloak User Storage SPI to connect to an external user storage.
+  version: 1.0.0
+  contact:
+    name: Novareto GmbH
+    email: info@novareto.de
+    url: http://novareto.de
+externalDocs:
+  description: Keycloak User Storage SPI Documentation
+  url: https://www.keycloak.org/docs/latest/server_development/index.html#_user-storage-spi
+
+servers:
+  - url: 'http://localhost:8080'
+
+security:
+  - basicAuth: []
+
+tags:
+  - name: users
+    description: Operations about users
+  - name: credentials
+    description: Operations on credentials
+
+paths:
+  /users:
+    get:
+      summary: List of users
+      description: Returns a list of users.
+      operationId: listUsers
+      tags:
+        - users
+      parameters:
+        - name: first
+          in: query
+          description: number of first result to return
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: max
+          in: query
+          description: number of max results to return
+          schema:
+            type: integer
+            minimum: 1
+            default: 100
+        - name: email
+          in: query
+          description: case insensitive email address of user to return, must match completely, if used, max. 1 user may be returned (if email address is unique)
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: case insensitive list of strings separated by whitespaces, contained (possibly partly) in username, email, first name or last name
+          schema:
+            type: string
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirtualUsers'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+  /users/count:
+    get:
+      summary: Number of users
+      description: Returns the total number of users.
+      operationId: usersCount
+      tags:
+        - users
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    required: true
+                    minimum: 0
+                example:
+                  count: 123
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+  /users/{userId}:
+    get:
+      summary: Find a single user by ID
+      description: Returns a single user with the supplied ID.
+      operationId: getUserById
+      tags:
+        - users
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user to return
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirtualUser'
+        400:
+          description: Invalid ID supplied
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        404:
+          description: User not found
+  /credentials:
+    post:
+      summary: Verify users credentials
+      description: Verifies the users credentials (e.g. a hash of the password). This method is not really RESTful!
+      operationId: verifyCredentials
+      tags:
+        - credentials
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredentialInput'
+      responses:
+        204:
+          description: Credential is valid
+        400:
+          description: Credential validation failed
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      summary: Updates users credentials
+      description: Updates/sets the users credentials (e.g. a hash of the password).
+      operationId: updateCredentials
+      tags:
+        - credentials
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredentialInput'
+      responses:
+        204:
+          description: Credential update successful
+        400:
+          description: Credential update failed
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        404:
+          description: User entity to update the credential for not found
+
+components:
+  responses:
+    UnauthorizedError:
+      description: Authentication information is missing or invalid
+      headers:
+        WWW_Authenticate:
+          schema:
+            type: string
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    VirtualUser:
+      type: object
+      required:
+        - id
+        - email
+      properties:
+        id:
+          type: string
+          description: unique identifier for this user
+          example: 55746c21-af2e-491d-9af4-6d7d46ede50b
+        email:
+          type: string
+          example: 'john.doe@example.com'
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        attributes:
+          $ref: '#/components/schemas/Attributes'
+        groups:
+          type: array
+          items:
+            type: string
+            example: Editors
+    VirtualUsers:
+      type: array
+      items:
+        $ref: '#/components/schemas/VirtualUser'
+    CredentialInput:
+      type: object
+      required:
+        - userId
+        - value
+      properties:
+        userId:
+          type: string
+          description: unique identifier for this user
+          example: 55746c21-af2e-491d-9af4-6d7d46ede50b
+        value:
+          type: string
+          description: credential value, e.g. hashed password
+          example: 3858f62230ac3c915f300c664312c63f
+        type:
+          type: string
+          description: the type of this credential
+          default: password
+          example: password
+        attributes:
+          $ref: '#/components/schemas/Attributes'
+    Attributes:
+      type: object
+      description: generic key-value object
+      example:
+        foo: bar
