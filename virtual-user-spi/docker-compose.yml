@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  api:
+    container_name: api_mock
+    image: muonsoft/openapi-mock:latest
+    environment:
+      OPENAPI_MOCK_SPECIFICATION_URL: /tmp/virtualUserStorage.yaml
+      OPENAPI_MOCK_USE_EXAMPLES: if_present
+    volumes:
+      - ../api/virtualUserStorage.yaml:/tmp/virtualUserStorage.yaml
+    ports:
+      - '8081:8080'
