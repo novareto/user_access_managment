@@ -23,8 +23,8 @@ public interface VirtualStorageClient {
 
     @GET
     @Path("/users")
-    List<VirtualUser> getUsers(@QueryParam("first") @DefaultValue("1") Integer first,
-                               @QueryParam("max") @DefaultValue("100") Integer max,
+    List<VirtualUser> getUsers(@QueryParam("first") @DefaultValue("0") Integer first,
+                               @QueryParam("max") @DefaultValue("20") Integer max,
                                @QueryParam("email") String email,
                                @QueryParam("search") String search);
 

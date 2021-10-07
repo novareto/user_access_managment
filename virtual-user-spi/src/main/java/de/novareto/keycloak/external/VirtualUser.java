@@ -2,9 +2,9 @@ package de.novareto.keycloak.external;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import org.keycloak.common.util.MultivaluedHashMap;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
@@ -16,6 +16,6 @@ public class VirtualUser {
     private String email;
     private String firstName;
     private String lastName;
-    private Map<String, Object> attributes;
+    private MultivaluedHashMap<String, String> attributes;
     private List<String> groups;
 }

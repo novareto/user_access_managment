@@ -90,7 +90,7 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
     public UserModel getUserById(RealmModel realm, String id) {
         UserModel adapter = loadedUsers.get(id);
         if (adapter == null) {
-            adapter = new UserAdapter(session, realm, model, service.findUserById(StorageId.externalId(id)));
+            adapter = new VirtualUserAdapter(session, realm, model, service.findUserById(StorageId.externalId(id)));
             loadedUsers.put(id, adapter);
         }
         return adapter;
@@ -107,7 +107,7 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
         if (adapter == null) {
             VirtualUser user = service.findUserByEmail(email);
             if (user != null) {
-                adapter = new UserAdapter(session, realm, model, user);
+                adapter = new VirtualUserAdapter(session, realm, model, user);
                 loadedUsers.put(email, adapter);
             }
         }
@@ -157,6 +157,6 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
     }
 
     private Stream<UserModel> toUserModelStream(List<VirtualUser> virtualUsers, RealmModel realm) {
-        return virtualUsers.stream().map(user -> new UserAdapter(session, realm, model, user));
+        return virtualUsers.stream().map(user -> new VirtualUserAdapter(session, realm, model, user));
     }
 }

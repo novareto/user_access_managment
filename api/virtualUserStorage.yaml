@@ -222,6 +222,10 @@ components:
           $ref: '#/components/schemas/Attributes'
     Attributes:
       type: object
-      description: generic key-value object
+      description: generic multivalued map, keys are strings, values are string-arrays
       example:
-        foo: bar
+        foo:
+          - bar
+          - baz
+        fizz:
+          - buzz
