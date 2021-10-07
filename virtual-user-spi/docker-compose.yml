@@ -11,3 +11,19 @@ services:
       - ../api/virtualUserStorage.yaml:/tmp/virtualUserStorage.yaml
     ports:
       - '8081:8080'
+
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:15.0.2
+    command: -c standalone.xml --debug *:8787
+    environment:
+      DB_VENDOR: h2
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      KEYCLOAK_IMPORT: /opt/jboss/novareto-realm.json
+    ports:
+      - '8080:8080'
+      - '8787:8787'
+    volumes:
+      - ./target/virtual-user-spi-1.0-SNAPSHOT.jar:/opt/jboss/keycloak/standalone/deployments/virtual-user-spi.jar
+      - ./novareto-realm.json:/opt/jboss/novareto-realm.json
