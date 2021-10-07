@@ -26,4 +26,4 @@ services:
       - '8787:8787'
     volumes:
       - ./target/virtual-user-spi-1.0-SNAPSHOT.jar:/opt/jboss/keycloak/standalone/deployments/virtual-user-spi.jar
-      - ./novareto-realm.json:/opt/jboss/novareto-realm.json
+      - ./src/test/resources/novareto-realm.json:/opt/jboss/novareto-realm.json
