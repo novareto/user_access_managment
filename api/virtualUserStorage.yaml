@@ -27,7 +27,7 @@ paths:
   /users:
     get:
       summary: List of users
-      description: Returns a list of users.
+      description: Returns a list of users. If no users could be found, an empty list must be returned.
       operationId: listUsers
       tags:
         - users
@@ -37,15 +37,15 @@ paths:
           description: number of first result to return
           schema:
             type: integer
-            minimum: 1
-            default: 1
+            minimum: 0
+            default: 0
         - name: max
           in: query
           description: number of max results to return
           schema:
             type: integer
             minimum: 1
-            default: 100
+            default: 20
         - name: email
           in: query
           description: case insensitive email address of user to return, must match completely, if used, max. 1 user may be returned (if email address is unique)
@@ -79,10 +79,11 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - count
                 properties:
                   count:
                     type: integer
-                    required: true
                     minimum: 0
                 example:
                   count: 123
