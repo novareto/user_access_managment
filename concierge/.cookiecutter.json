@@ -1,0 +1,12 @@
+{
+  "_template": "gh:cjolowicz/cookiecutter-hypermodern-python",
+  "author": "Christian Klinger",
+  "development_status": "Development Status :: 3 - Alpha",
+  "email": "ck@novareto.de",
+  "friendly_name": "Concierge",
+  "github_user": "goschtl",
+  "license": "MIT",
+  "package_name": "concierge",
+  "project_name": "concierge",
+  "version": "0.0.1"
+}
