@@ -15,11 +15,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
 public class VirtualUserAdapter extends AbstractUserAdapter.Streams {
+
+    public static final String REQUIRES_PASSWORD_UPDATE = "requiresPasswordUpdate";
 
     private final VirtualUser user;
 
@@ -72,7 +75,9 @@ public class VirtualUserAdapter extends AbstractUserAdapter.Streams {
         attributes.add(UserModel.EMAIL, getEmail());
         attributes.add(UserModel.FIRST_NAME, getFirstName());
         attributes.add(UserModel.LAST_NAME, getLastName());
-        attributes.addAll(user.getAttributes());
+        if (user.getAttributes() != null) {
+            attributes.addAll(user.getAttributes());
+        }
         return attributes;
     }
 
@@ -81,11 +86,26 @@ public class VirtualUserAdapter extends AbstractUserAdapter.Streams {
         if (name.equals(UserModel.USERNAME)) {
             return Collections.singletonList(getUsername());
         }
-        return user.getAttributes().get(name);
+        return user.getAttributes() != null ? user.getAttributes().get(name) : List.of();
     }
 
     @Override
     protected Set<GroupModel> getGroupsInternal() {
         return user.getGroups().stream().map(VirtualGroupModel::new).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Stream<String> getRequiredActionsStream() {
+        if (user.getAttributes() != null && user.getAttributes().containsKey(REQUIRES_PASSWORD_UPDATE)) {
+            return Stream.of(RequiredAction.UPDATE_PASSWORD.name());
+        }
+        return Stream.empty();
+    }
+
+    @Override
+    public void removeRequiredAction(String action) {
+        if (user.getAttributes() != null) {
+            user.getAttributes().remove(REQUIRES_PASSWORD_UPDATE);
+        }
     }
 }
