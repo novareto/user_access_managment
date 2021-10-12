@@ -1,6 +1,9 @@
 name: CI build for VirtualUser Provider
 
-on: [ push ]
+on:
+  push:
+    paths:
+      - virtual-user-spi/**
 
 jobs:
   build:
@@ -20,11 +23,13 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Maven build
-        run: cd virtual-user-spi && mvn -B package
+        run: mvn -B package
+        working-directory: virtual-user-spi
       - name: Copy artifacts
-        run: mkdir staging && cp virtual-user-spi/target/*.jar staging
+        run: mkdir staging && cp target/*.jar staging
+        working-directory: virtual-user-spi
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: Package
-          path: staging
+          path: virtual-user-spi/staging
