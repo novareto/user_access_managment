@@ -1,29 +1,36 @@
 package de.novareto.keycloak.external;
 
-import lombok.Value;
+import lombok.Data;
+import lombok.SneakyThrows;
+import org.keycloak.common.util.Base64;
+import org.keycloak.common.util.MultivaluedHashMap;
+import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.credential.PasswordCredentialModel;
-
-import java.util.Map;
 
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
-@Value
+@Data
 public class VirtualUserCredential {
-    String userId;
-    String value;
-    String type = PasswordCredentialModel.TYPE;
-    Map<String, Object> attributes;
+    private String value;
+    private String salt;
+    private String algorithm = PasswordPolicy.HASH_ALGORITHM_DEFAULT;
+    private Integer iterations = PasswordPolicy.HASH_ITERATIONS_DEFAULT;
+    private String type = PasswordCredentialModel.TYPE;
+    private MultivaluedHashMap<String, String> attributes;
 
-    public VirtualUserCredential(String userId, String value) {
-        this.userId = userId;
-        this.value = value;
-        this.attributes = null;
+    public static VirtualUserCredential fromPasswordCredentialModel(PasswordCredentialModel pcm) {
+        VirtualUserCredential vuc = new VirtualUserCredential();
+        vuc.setValue(pcm.getPasswordSecretData().getValue());
+        vuc.setSalt(Base64.encodeBytes(pcm.getPasswordSecretData().getSalt()));
+        vuc.setAlgorithm(pcm.getPasswordCredentialData().getAlgorithm());
+        vuc.setIterations(pcm.getPasswordCredentialData().getHashIterations());
+        return vuc;
     }
 
-    public VirtualUserCredential(String userId, String value, Map<String, Object> attributes) {
-        this.userId = userId;
-        this.value = value;
-        this.attributes = attributes;
+    @SneakyThrows
+    public PasswordCredentialModel toPasswordCredentialModel() {
+        return PasswordCredentialModel.createFromValues(
+                this.getAlgorithm(), Base64.decode(this.getSalt()), this.getIterations(), this.getValue());
     }
 }

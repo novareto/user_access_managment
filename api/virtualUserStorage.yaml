@@ -116,45 +116,58 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         404:
           description: User not found
-  /credentials:
-    post:
-      summary: Verify users credentials
-      description: Verifies the users credentials (e.g. a hash of the password). This method is not really RESTful!
-      operationId: verifyCredentials
+  /credentials/{userId}:
+    get:
+      summary: Retrieve current credential model for given userId
+      description: Retrieve current credential model with hash and other attributes to be able to verify the user-provided credential.
+      operationId: getCredentialModel
       tags:
         - credentials
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CredentialInput'
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user the credentials should be returned for
+          required: true
+          schema:
+            type: string
       responses:
-        204:
-          description: Credential is valid
-        400:
-          description: Credential validation failed
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-    put:
-      summary: Updates users credentials
-      description: Updates/sets the users credentials (e.g. a hash of the password).
-      operationId: updateCredentials
-      tags:
-        - credentials
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CredentialInput'
-      responses:
-        204:
-          description: Credential update successful
-        400:
-          description: Credential update failed
+        200:
+          description: Credential model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredentialModel'
         401:
           $ref: '#/components/responses/UnauthorizedError'
         404:
-          description: User entity to update the credential for not found
+          description: Credential model not found
+    put:
+      summary: Updates users credential model
+      description: Updates/sets the users credential model with hash and other credential attributes.
+      operationId: updateCredentialModel
+      tags:
+        - credentials
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user the credentials should be returned for
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredentialModel'
+      responses:
+        204:
+          description: Credential model update successful
+        400:
+          description: Credential model update failed
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        404:
+          description: User entity to update the credential model for not found
 
 components:
   responses:
@@ -199,20 +212,28 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/VirtualUser'
-    CredentialInput:
+    CredentialModel:
       type: object
       required:
-        - userId
         - value
+        - salt
       properties:
-        userId:
-          type: string
-          description: unique identifier for this user
-          example: 55746c21-af2e-491d-9af4-6d7d46ede50b
         value:
           type: string
-          description: credential value, e.g. hashed password
-          example: 3858f62230ac3c915f300c664312c63f
+          description: credential value, e.g. hashed password (base64 encoded), the example value here is "test"
+          example: /bVkHA4G/VOskjaCgNYyTz1BhgD+9X8bxCNEPGGpnDCJbWHDXIW0G8IlSBhDdJsXTjrXt/7yQguBwJ3sxSmSKA==
+        salt:
+          type: string
+          description: (generated) salt for creating the credential hash (base64 encoded), the example value here matches the provided example hash value
+          example: lZtleWv1DeEcNIr8MTzdeg==
+        iterations:
+          type: integer
+          description: count of iterations used to create the hash
+          example: 27500
+        algorithm:
+          type: string
+          description: used hashing algorithm
+          example: pbkdf2-sha256
         type:
           type: string
           description: the type of this credential
