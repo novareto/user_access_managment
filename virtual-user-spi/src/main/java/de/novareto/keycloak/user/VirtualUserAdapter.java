@@ -104,6 +104,23 @@ public class VirtualUserAdapter extends AbstractUserAdapter.Streams {
 
     @Override
     public void removeRequiredAction(String action) {
+        if (RequiredAction.UPDATE_PASSWORD.name().equals(action)) {
+            removePasswordUpdateRequirement();
+        } else {
+            super.removeRequiredAction(action);
+        }
+    }
+
+    @Override
+    public void removeRequiredAction(RequiredAction action) {
+        if (RequiredAction.UPDATE_PASSWORD.equals(action)) {
+            removePasswordUpdateRequirement();
+        } else {
+            super.removeRequiredAction(action);
+        }
+    }
+
+    private void removePasswordUpdateRequirement() {
         if (user.getAttributes() != null) {
             user.getAttributes().remove(REQUIRES_PASSWORD_UPDATE);
         }
