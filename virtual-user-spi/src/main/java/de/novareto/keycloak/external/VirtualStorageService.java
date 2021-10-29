@@ -58,21 +58,24 @@ public class VirtualStorageService {
         return client.getUsers(firstResult, maxResults, null, search);
     }
 
-    public boolean verifyCredentials(VirtualUserCredential credential) {
+    public VirtualUserCredential getCredentialData(String userId) {
         try {
-            Response response = client.verifyCredentials(credential);
-            return response.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL);
+            return client.getCredentialModel(userId);
         } catch (ClientErrorException e) {
-            return false;
+            if (e.getResponse().getStatusInfo().toEnum().equals(Response.Status.NOT_FOUND)) {
+                log.warnf("Credential data for user %s could not be found.", userId);
+                return null;
+            }
+            throw e;
         }
     }
 
-    public boolean updateCredentials(VirtualUserCredential credential) {
+    public boolean updateCredentialData(String userId, VirtualUserCredential credential) {
         try {
-            Response response = client.updateCredentials(credential);
+            Response response = client.updateCredentialModel(userId, credential);
             return response.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL);
         } catch (ClientErrorException e) {
-            log.warnf("Credentials update for user %s failed with response %s", credential.getUserId(), e.getResponse().getStatus());
+            log.warnf("Credential data update for user %s failed with response %s", userId, e.getResponse().getStatus());
             return false;
         }
     }

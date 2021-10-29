@@ -7,8 +7,10 @@ import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialInputUpdater;
 import org.keycloak.credential.CredentialInputValidator;
+import org.keycloak.credential.hash.PasswordHashProvider;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
@@ -59,8 +61,17 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
     public boolean updateCredential(RealmModel realm, UserModel user, CredentialInput input) {
         if (!(input instanceof UserCredentialModel)) return false;
         if (!supportsCredentialType(input.getType())) return false;
+
         UserCredentialModel cred = (UserCredentialModel) input;
-        return service.updateCredentials(new VirtualUserCredential(StorageId.externalId(user.getId()), cred.getChallengeResponse()));
+
+        PasswordPolicy passwordPolicy = realm.getPasswordPolicy();
+        PasswordHashProvider passwordHashProvider = session.getProvider(PasswordHashProvider.class, passwordPolicy.getHashAlgorithm());
+        PasswordCredentialModel passwordCredentialModel =
+                passwordHashProvider.encodedCredential(cred.getChallengeResponse(), passwordPolicy.getHashIterations());
+
+        VirtualUserCredential virtualUserCredential = VirtualUserCredential.fromPasswordCredentialModel(passwordCredentialModel);
+
+        return service.updateCredentialData(StorageId.externalId(user.getId()), virtualUserCredential);
     }
 
     @Override
@@ -82,8 +93,16 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
         if (!supportsCredentialType(input.getType()) || !(input instanceof UserCredentialModel)) {
             return false;
         }
+
+        VirtualUserCredential vuCredentialData = service.getCredentialData(StorageId.externalId(user.getId()));
+        if (vuCredentialData == null) {
+            return false;
+        }
+
+        PasswordCredentialModel passwordCredentialModel = vuCredentialData.toPasswordCredentialModel();
         UserCredentialModel cred = (UserCredentialModel) input;
-        return service.verifyCredentials(new VirtualUserCredential(StorageId.externalId(user.getId()), cred.getChallengeResponse()));
+        PasswordHashProvider passwordHashProvider = session.getProvider(PasswordHashProvider.class, vuCredentialData.getAlgorithm());
+        return passwordHashProvider.verify(cred.getChallengeResponse(), passwordCredentialModel);
     }
 
     @Override

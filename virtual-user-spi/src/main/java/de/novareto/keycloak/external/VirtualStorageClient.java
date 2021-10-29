@@ -3,7 +3,6 @@ package de.novareto.keycloak.external;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -36,12 +35,12 @@ public interface VirtualStorageClient {
     @Path("/users/{userId}")
     VirtualUser getUserById(@PathParam("userId") String userId);
 
-    @POST
-    @Path("/credentials")
-    Response verifyCredentials(VirtualUserCredential credential);
+    @GET
+    @Path("/credentials/{userId}")
+    VirtualUserCredential getCredentialModel(@PathParam("userId") String userId);
 
     @PUT
-    @Path("/credentials")
-    Response updateCredentials(VirtualUserCredential credential);
+    @Path("/credentials/{userId}")
+    Response updateCredentialModel(@PathParam("userId") String userId, VirtualUserCredential credential);
 
 }
