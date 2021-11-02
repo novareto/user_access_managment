@@ -11,11 +11,11 @@
     <properties>
         <junit.version>5.8.1</junit.version>
         <keycloak.version>15.0.2</keycloak.version>
-        <lombok.version>1.18.20</lombok.version>
+        <lombok.version>1.18.22</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <restassured.version>4.4.0</restassured.version>
-        <testcontainers.version>1.15.3</testcontainers.version>
-        <testcontainers-keycloak.version>1.8.0</testcontainers-keycloak.version>
+        <testcontainers.version>1.16.2</testcontainers.version>
+        <testcontainers-keycloak.version>1.8.1</testcontainers-keycloak.version>
     </properties>
 
     <dependencyManagement>
@@ -44,6 +44,11 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-server-spi-private</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-services</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>

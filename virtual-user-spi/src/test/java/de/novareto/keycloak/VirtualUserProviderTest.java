@@ -37,7 +37,7 @@ public class VirtualUserProviderTest {
     @Container
     public static KeycloakContainer keycloak = new KeycloakContainer()
             .withRealmImportFile("/novareto-realm.json")
-            .withExtensionClassesFrom("target/classes")
+            .withProviderClassesFrom("target/classes")
             .withNetwork(network);
 
     @Container

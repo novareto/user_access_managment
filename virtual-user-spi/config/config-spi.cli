@@ -1,0 +1,14 @@
+embed-server --server-config=standalone.xml --std-out=echo
+batch
+/subsystem=keycloak-server/spi=login:add(default-provider=virtualFreemarker)
+/subsystem=keycloak-server/spi=login/provider=virtualFreemarker:add(enabled=true)
+run-batch
+stop-embedded-server
+
+
+embed-server --server-config=standalone-ha.xml --std-out=echo
+batch
+/subsystem=keycloak-server/spi=login:add(default-provider=virtualFreemarker)
+/subsystem=keycloak-server/spi=login/provider=virtualFreemarker:add(enabled=true)
+run-batch
+stop-embedded-server

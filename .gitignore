@@ -48,3 +48,4 @@ build/
 
 # Local environment
 .env
+dummy-user-provider
