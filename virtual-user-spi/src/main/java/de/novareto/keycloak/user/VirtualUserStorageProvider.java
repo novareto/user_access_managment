@@ -99,8 +99,13 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
             return false;
         }
 
-        PasswordCredentialModel passwordCredentialModel = vuCredentialData.toPasswordCredentialModel();
         UserCredentialModel cred = (UserCredentialModel) input;
+
+        if ("plain".equalsIgnoreCase(vuCredentialData.getAlgorithm())) {
+            return cred.getChallengeResponse().equals(vuCredentialData.getValue());
+        }
+
+        PasswordCredentialModel passwordCredentialModel = vuCredentialData.toPasswordCredentialModel();
         PasswordHashProvider passwordHashProvider = session.getProvider(PasswordHashProvider.class, vuCredentialData.getAlgorithm());
         return passwordHashProvider.verify(cred.getChallengeResponse(), passwordCredentialModel);
     }
