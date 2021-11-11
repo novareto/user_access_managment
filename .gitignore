@@ -49,3 +49,4 @@ build/
 # Local environment
 .env
 dummy-user-provider
+postgres_data
