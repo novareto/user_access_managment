@@ -50,3 +50,4 @@ build/
 .env
 dummy-user-provider
 postgres_data
+siguv.de.*

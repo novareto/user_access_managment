@@ -4,13 +4,12 @@ services:
   keycloak_db:
     container_name: keycloak_db
     image: postgres:14
-    ports:
-      - '5432:5432'
     environment:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: '********'
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
+    user: 1001:1001
     restart: always
 
   keycloak:
@@ -31,12 +30,21 @@ services:
       PROXY_ADDRESS_FORWARDING: 'true'
       # HTTP_PROXY: http://10.33.176.21:3128
       # HTTPS_PROXY: http://10.33.176.21:3128
-    ports:
-      - '8080:8080'
-      - '8443:8443'
     volumes:
       - ./startup-scripts:/opt/jboss/startup-scripts
       - ./providers:/opt/jboss/keycloak/standalone/deployments
+    restart: always
     depends_on:
       - keycloak_db
+
+  nginx:
+    container_name: nginx
+    image: siguv-nginx
+    build: ./nginx
+    logging:
+      driver: none
+    ports:
+      - '443:443'
     restart: always
+    depends_on:
+      - keycloak

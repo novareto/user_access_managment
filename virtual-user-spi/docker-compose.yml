@@ -27,4 +27,4 @@ services:
     volumes:
       - ./target/virtual-user-spi-1.0-SNAPSHOT.jar:/opt/jboss/keycloak/standalone/deployments/virtual-user-spi.jar
       - ./src/test/resources/novareto-realm.json:/opt/jboss/novareto-realm.json
-      - ./config:/opt/jboss/startup-scripts
+      - ../siguv_docker/startup-scripts:/opt/jboss/startup-scripts
