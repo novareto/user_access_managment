@@ -1,5 +1,6 @@
 package de.novareto.keycloak.external;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.keycloak.common.util.Base64;
@@ -11,6 +12,7 @@ import org.keycloak.models.credential.PasswordCredentialModel;
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class VirtualUserCredential {
     private String value;
     private String salt;
