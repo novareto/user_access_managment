@@ -91,7 +91,10 @@ public class VirtualUserAdapter extends AbstractUserAdapter.Streams {
 
     @Override
     protected Set<GroupModel> getGroupsInternal() {
-        return user.getGroups().stream().map(VirtualGroupModel::new).collect(Collectors.toSet());
+        if (user.getGroups() != null) {
+            return user.getGroups().stream().map(VirtualGroupModel::new).collect(Collectors.toSet());
+        }
+        return Set.of();
     }
 
     @Override
