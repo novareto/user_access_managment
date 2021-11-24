@@ -51,3 +51,4 @@ build/
 dummy-user-provider
 postgres_data
 siguv.de.*
+deploy.sh
