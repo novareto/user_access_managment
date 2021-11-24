@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -128,6 +129,7 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
 
     @Override
     public UserModel getUserById(RealmModel realm, String id) {
+        log.debugf("getUserById: %s", id);
         UserModel adapter = loadedUsers.get(id);
         if (adapter == null) {
             VirtualUser user = service.findUserById(StorageId.externalId(id));
@@ -144,14 +146,21 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
 
     @Override
     public UserModel getUserByUsername(RealmModel realm, String username) {
+        log.debugf("getUserByUsername: %s", username);
         return getUserByEmail(realm, username);
     }
 
     @Override
     public UserModel getUserByEmail(RealmModel realm, String email) {
+        log.debugf("getUserByEmail: %s", email);
         UserModel adapter = loadedUsers.get(email);
         if (adapter == null) {
-            VirtualUser user = service.findUserByEmail(email);
+            VirtualUser user;
+            if (isEmailAddressRFC5322(email)) {
+                user = service.findUserByEmail(email);
+            } else {
+                user = service.findUserById(email);
+            }
             log.debugf("Received user data for %s from API: %s", email, user);
             if (user != null) {
                 adapter = new VirtualUserAdapter(session, realm, model, user);
@@ -208,5 +217,14 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
     private Stream<UserModel> toUserModelStream(List<VirtualUser> virtualUsers, RealmModel realm) {
         log.debugf("Received %d users from API", virtualUsers.size());
         return virtualUsers.stream().map(user -> new VirtualUserAdapter(session, realm, model, user));
+    }
+
+    static Pattern emailPattern = Pattern.compile("^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$");
+    /**
+     * Email Address validation as of RFC5322
+     * {@see https://www.rfc-editor.org/info/rfc5322}
+     */
+    static boolean isEmailAddressRFC5322(String email) {
+        return emailPattern.matcher(email).matches();
     }
 }

@@ -51,7 +51,8 @@ public class VirtualStorageService {
     }
 
     public VirtualUser findUserByEmail(String email) {
-        return client.getUsers(1, 1, email, null).get(0);
+        List<VirtualUser> users = client.getUsers(1, 1, email, null);
+        return users.isEmpty() ? null : users.get(0);
     }
 
     public List<VirtualUser> searchUsers(String search, Integer firstResult, Integer maxResults) {
