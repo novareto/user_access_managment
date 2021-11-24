@@ -3,6 +3,7 @@ package de.novareto.keycloak.user;
 import de.novareto.keycloak.external.VirtualStorageService;
 import de.novareto.keycloak.external.VirtualUser;
 import de.novareto.keycloak.external.VirtualUserCredential;
+import lombok.extern.jbosslog.JBossLog;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialInputUpdater;
@@ -21,6 +22,7 @@ import org.keycloak.storage.user.UserLookupProvider;
 import org.keycloak.storage.user.UserQueryProvider;
 import org.keycloak.storage.user.UserRegistrationProvider;
 
+import javax.ws.rs.WebApplicationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,7 @@ import java.util.stream.Stream;
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
+@JBossLog
 public class VirtualUserStorageProvider implements UserStorageProvider,
         UserLookupProvider.Streams, UserQueryProvider.Streams,
         CredentialInputValidator, CredentialInputUpdater,
@@ -59,6 +62,7 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
 
     @Override
     public boolean updateCredential(RealmModel realm, UserModel user, CredentialInput input) {
+        log.debugf("Try to update credentials type %s for user %s.", input.getType(), user.getId());
         if (!(input instanceof UserCredentialModel)) return false;
         if (!supportsCredentialType(input.getType())) return false;
 
@@ -71,6 +75,8 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
 
         VirtualUserCredential virtualUserCredential = VirtualUserCredential.fromPasswordCredentialModel(passwordCredentialModel);
 
+        log.debugf("Sending updateCredential request for userId %s", user.getId());
+        log.tracef("Payload for updateCredential request: %s", virtualUserCredential);
         return service.updateCredentialData(StorageId.externalId(user.getId()), virtualUserCredential);
     }
 
@@ -94,8 +100,16 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
             return false;
         }
 
-        VirtualUserCredential vuCredentialData = service.getCredentialData(StorageId.externalId(user.getId()));
-        if (vuCredentialData == null) {
+        VirtualUserCredential vuCredentialData;
+        try {
+            vuCredentialData = service.getCredentialData(StorageId.externalId(user.getId()));
+            log.debugf("Received credential data for userId %s: %s", user.getId(), vuCredentialData);
+            if (vuCredentialData == null) {
+                return false;
+            }
+        } catch (WebApplicationException e) {
+            log.errorf(e, "Request to verify credentials for userId %s failed with response status %d",
+                    user.getId(), e.getResponse().getStatus());
             return false;
         }
 
@@ -107,15 +121,23 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
 
         PasswordCredentialModel passwordCredentialModel = vuCredentialData.toPasswordCredentialModel();
         PasswordHashProvider passwordHashProvider = session.getProvider(PasswordHashProvider.class, vuCredentialData.getAlgorithm());
-        return passwordHashProvider.verify(cred.getChallengeResponse(), passwordCredentialModel);
+        boolean isValid = passwordHashProvider.verify(cred.getChallengeResponse(), passwordCredentialModel);
+        log.debugf("Password validation result: %b", isValid);
+        return isValid;
     }
 
     @Override
     public UserModel getUserById(RealmModel realm, String id) {
         UserModel adapter = loadedUsers.get(id);
         if (adapter == null) {
-            adapter = new VirtualUserAdapter(session, realm, model, service.findUserById(StorageId.externalId(id)));
-            loadedUsers.put(id, adapter);
+            VirtualUser user = service.findUserById(StorageId.externalId(id));
+            log.debugf("Received user data for id %s from API: %s", id, user);
+            if (user != null) {
+                adapter = new VirtualUserAdapter(session, realm, model, user);
+                loadedUsers.put(id, adapter);
+            }
+        } else {
+            log.debugf("Found user data for id %s in loadedUsers.", id);
         }
         return adapter;
     }
@@ -130,10 +152,13 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
         UserModel adapter = loadedUsers.get(email);
         if (adapter == null) {
             VirtualUser user = service.findUserByEmail(email);
+            log.debugf("Received user data for %s from API: %s", email, user);
             if (user != null) {
                 adapter = new VirtualUserAdapter(session, realm, model, user);
                 loadedUsers.put(email, adapter);
             }
+        } else {
+            log.debugf("Found user data for %s in loadedUsers.", email);
         }
         return adapter;
     }
@@ -181,6 +206,7 @@ public class VirtualUserStorageProvider implements UserStorageProvider,
     }
 
     private Stream<UserModel> toUserModelStream(List<VirtualUser> virtualUsers, RealmModel realm) {
+        log.debugf("Received %d users from API", virtualUsers.size());
         return virtualUsers.stream().map(user -> new VirtualUserAdapter(session, realm, model, user));
     }
 }

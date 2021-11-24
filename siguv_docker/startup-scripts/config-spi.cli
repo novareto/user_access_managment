@@ -3,6 +3,7 @@ batch
 /subsystem=keycloak-server/spi=login:add(default-provider=virtualFreemarker)
 /subsystem=keycloak-server/spi=login/provider=virtualFreemarker:add(enabled=true)
 run-batch
+#/subsystem=logging/logger=de.novareto.keycloak/:add(category=de.novareto.keycloak,level=DEBUG)
 stop-embedded-server
 
 
@@ -11,4 +12,5 @@ batch
 /subsystem=keycloak-server/spi=login:add(default-provider=virtualFreemarker)
 /subsystem=keycloak-server/spi=login/provider=virtualFreemarker:add(enabled=true)
 run-batch
+#/subsystem=logging/logger=de.novareto.keycloak/:add(category=de.novareto.keycloak,level=DEBUG)
 stop-embedded-server
